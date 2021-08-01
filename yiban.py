@@ -1,18 +1,18 @@
 import re
 import requests
 import util
+
 class YiBan:
     CSRF = "sui-bian-fang-dian-dong-xi"  # 随机值 随便填点东西
     COOKIES = {"csrf_token": CSRF}  # 固定cookie 无需更改
     HEADERS = {"Origin": "https://c.uyiban.com", "User-Agent": "yiban"}  # 固定头 无需更改
 
     def __init__(self, account, passwd):
-        self.account = account
-        self.passwd = passwd
+        self.account = account    #账号
+        self.passwd = passwd    #密码            
         self.session = requests.session()
         self.name = ""
         self.iapp = ""
-
     def request(self, url, method="get", params=None, cookies=None):
         if method == "get":
             req = self.session.get(url, params=params, timeout=10, headers=self.HEADERS, cookies=cookies)
@@ -36,6 +36,7 @@ class YiBan:
             return r
         else:
             raise Exception("账号或密码错误")
+
     def getHome(self):
         params = {
             "access_token": self.access_token,

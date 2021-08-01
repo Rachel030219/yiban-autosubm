@@ -1,12 +1,23 @@
 import json
 import random
 import time
+import os
+
 import traceback
 from yiban import YiBan
 import util
+
 if __name__ == '__main__':
     try:
-        yb = YiBan("phone", "password") # FIXME:账号密码
+        account = "18574783639"
+        password = "wsyybo123456"
+        #if(len(account)==0 or len(password)==0):
+        #    print("账号")
+        #    account = input()
+        #    print("密码")
+        #    password = input()
+
+        yb = YiBan(account, password) # FIXME:账号密码
         yb.login()
         yb.getHome()
         print("登录成功 %s"%yb.name)
@@ -41,3 +52,4 @@ if __name__ == '__main__':
     except Exception as e:
         print("出错啦")
         print(e)
+    os.system("pause")
