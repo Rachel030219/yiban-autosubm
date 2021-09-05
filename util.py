@@ -1,6 +1,13 @@
+import base64
 import datetime
+import random
 import time
+import uuid
 
+
+from Cryptodome.Cipher import PKCS1_v1_5
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Hash import MD5
 
 def get_time():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -25,3 +32,34 @@ def desc_sort(array, key="FeedbackTime"):
             if array[j][key] < array[j + 1][key]:
                 array[j], array[j + 1] = array[j + 1], array[j]
     return array
+
+
+def encrypt_passwd(message, key):
+    cipher = PKCS1_v1_5.new(RSA.importKey(key))
+    return str(base64.b64encode(cipher.encrypt(message.encode('utf-8'))), 'utf-8')
+
+
+def generate_imei():
+    r1 = 1000000 + random.randint(1, 9000000)
+    r2 = 1000000 + random.randint(1, 9000000)
+    instr = str(r1) + str(r2)
+    ch = list(instr)
+    a = 0
+    b = 0
+    for i in range(len(ch)):
+        tt = int(ch[i])
+        if i % 2 == 0:
+            a = a + tt
+        else:
+            temp = tt * 2
+            b = b + temp / 10 + temp % 10
+    last = int((a + b) % 10)
+    if last == 0:
+        last = 0
+    else:
+        last = 10 - last
+    return instr + str(last)
+
+
+def generate_sig():
+    return MD5.MD5Hash(str(uuid.uuid1()).encode('utf-8')).hexdigest()[:16]
