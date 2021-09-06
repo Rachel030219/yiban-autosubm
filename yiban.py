@@ -8,8 +8,8 @@ class YiBan:
     HEADERS = {"Origin": "https://c.uyiban.com", "User-Agent": "yiban"}  # 固定头 无需更改
 
     def __init__(self, account, passwd):
-        self.account = "18574783639"    #账号
-        self.passwd = "wsyybo123456"    #密码            
+        self.account = account   #账号
+        self.passwd = passwd    #密码            
         self.session = requests.Session() 
         self.headers = self.session.headers
         self.headers.update({
@@ -50,11 +50,17 @@ class YiBan:
             'authCode': '',
             'sig': util.generate_sig()
         }
-        # 最新不需要加密密码直接登录的接口来自我B站视频评论用户：破损的鞘翅(bilibili_id:45807603)
+
         r = self.request(url="https://m.yiban.cn/api/v4/passport/login", method='post',params=params)
         
         if r is not None and str(r["response"]) == "100":
             self.access_token = r["data"]["access_token"]
+            self.headers.update({
+                    "logintoken": self.access_token,
+                    "authorization": f"Bearer {self.access_token}"
+            })
+            print("logintoken:"+self.access_token)
+            print("authorization:"+f"Bearer {self.access_token}")
             return r
         else:
             raise Exception("账号或密码错误")
@@ -64,24 +70,33 @@ class YiBan:
             "access_token": self.access_token,
         }
         r = self.request(url="https://mobile.yiban.cn/api/v4/home", params=params)
-        
-        print(r["data"]["hotapps"])
-        
-        self.name = r["data"]["user"]["name"]
+        self.name = r["data"]["user"]["userName"]
         for i in r["data"]["hotApps"]: # 动态取得iapp号 20201117更新
-            if i["name"] == "易班校本化":
-                self.iapp = re.findall(r"(iapp.*)\?", i["url"])[0]
+            if i["name"] == "校本化":
+                self.iapp = re.findall(r"iapp[0-9]*", i["url"])[0]
+                print(self.iapp)
         return r
+
     def auth(self):
+        url = f"https://f.yiban.cn/{self.iapp}"
+        self.session.request(url=url,method='get',allow_redirects=False)
+
         params = {
-            "act": self.iapp,
-            "v": self.access_token
+            "act": self.iapp
         }
         print()
-        location = self.session.get("http://f.yiban.cn/iapp/index",params=params,
-                                    allow_redirects=False).headers.get("Location")
-        if location is None:
-            raise Exception("该用户可能没进行校方认证，无此APP权限")
+        r=self.session.request(url="https://f.yiban.cn/iapp/index", method='get', params=params, allow_redirects=False)
+        location = r.headers.get("Location")    
+
+        if not location:
+            if 'html' in r.text:
+                message = re.findall("(?<=<title>).*(?=</title>)", r.text)[0]
+                raise Exception(f'获取iapp入口遇到错误 {message}')
+            else:
+                # 该用户可能没进行校方认证，无此APP权限
+                message = r.text[:101]
+                raise Exception(f'获取iapp入口遇到错误 {message}')
+
         verifyRequest = re.findall(r"verify_request=(.*?)&", location)[0]
         result_auth = self.request(
             "https://api.uyiban.com/base/c/auth/yiban?verifyRequest=%s&CSRF=%s" % (verifyRequest, self.CSRF),
