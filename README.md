@@ -13,15 +13,9 @@
 
 长沙理工大学易班疫情一键上报今日体温自动打卡程序。
 
-现在已经搭建长沙理工大学专属自动打卡自助网站：https://yiban.looyeagee.cn/
-
-对原理感兴趣的话，建议看看抓包过程视频：https://www.bilibili.com/video/BV1a741117hQ/
-
-博客文章地址：https://looyeagee.cn/software/yiban/
-
 ## :sparkles: 使用说明
 
-我将易班的相关接口封装成了一个类，打卡主程序是main.py，请详细查看注释含有`FIXME`的部分修改成自己的内容后再运行。
+易班的相关接口封装成了一个类，打卡主程序是main.py，请详细查看注释含有`FIXME`的部分修改成自己的内容后再运行。
 
 Linux/Windows环境下，克隆本仓库后转到目录下执行
 
