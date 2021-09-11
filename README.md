@@ -28,6 +28,8 @@ pip3 install -r requirements.txt -i https://pypi.douban.com/simple
 
 # 启动打卡
 python3 main.py
+
+注意 多个依赖不能pip -r
 ```
 
 
