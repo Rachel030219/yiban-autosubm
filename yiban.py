@@ -1,11 +1,15 @@
+from logging import fatal
 import re
 import requests
 import util
+import json
+import base64
+from Cryptodome.Cipher import AES
 
 class YiBan:
     CSRF = "sui-bian-fang-dian-dong-xi"  # 随机值 随便填点东西
-    COOKIES = {"csrf_token": CSRF}  # 固定cookie 无需更改
-    HEADERS = {"Origin": "https://c.uyiban.com", "User-Agent": "yiban"}  # 固定头 无需更改
+    cookies = {"csrf_token": CSRF}  # 固定cookie 无需更改
+    HEADERS = {"Origin": "https://app.uyiban.com", "User-Agent": "yiban"}  # 固定头 无需更改
 
     def __init__(self, account, passwd):
         self.account = account   #账号
@@ -24,6 +28,19 @@ class YiBan:
         self.access_token = ''
         self.iapp = ''
         self.nick = ''
+
+    # AES加密
+    def aes_encrypt(self,data:str) -> bytes:
+        cipher = AES.new(bytes('2knV5VGRTScU7pOq', 'utf-8'), AES.MODE_CBC, bytes('UmNWaNtM0PUdtFCs', 'utf-8'))
+        encrypted = base64.b64encode(cipher.encrypt(self.aes_pkcs7padding(bytes(data, 'utf-8'))))
+        return base64.b64encode(encrypted)
+    
+    # AES填充模式
+    def aes_pkcs7padding(self,data:bytes) -> bytes:
+        bs = AES.block_size
+        padding = bs - len(data) % bs
+        padding_text = bytes(chr(padding) * padding, 'utf-8')
+        return data + padding_text
 
     def request(self, url, method="get", params=None, cookies=None):
         if method == "get":
@@ -98,9 +115,10 @@ class YiBan:
                 raise Exception(f'获取iapp入口遇到错误 {message}')
 
         verifyRequest = re.findall(r"verify_request=(.*?)&", location)[0]
+
         result_auth = self.request(
             "https://api.uyiban.com/base/c/auth/yiban?verifyRequest=%s&CSRF=%s" % (verifyRequest, self.CSRF),
-            cookies=self.COOKIES)
+            cookies=self.cookies)
         data_url = result_auth["data"].get("Data")
         if data_url is not None:  # 授权过期
             result_html = self.session.get(url=data_url, headers=self.HEADERS,
@@ -126,40 +144,72 @@ class YiBan:
             "EndTime": util.get_time()
         }
         return self.request("https://api.uyiban.com/officeTask/client/index/uncompletedList", params=params,
-                            cookies=self.COOKIES)
+                            cookies=self.cookies)
 
     def getCompletedList(self):
         params = {
             "CSRF": self.CSRF,
-            "StartTime": util.get_7_day_ago(),
+            "StartTime": util.get_days_ago(-5),
             "EndTime": util.get_time()
         }
         return self.request("https://api.uyiban.com/officeTask/client/index/completedList", params=params,
-                            cookies=self.COOKIES)
+                            cookies=self.cookies)
 
     def getJsonByInitiateId(self, initiate_id):
         params = {
             "CSRF": self.CSRF
         }
         return self.request("https://api.uyiban.com/workFlow/c/work/show/view/%s" % initiate_id, params=params,
-                            cookies=self.COOKIES)
+                            cookies=self.cookies)
 
     def getTaskDetail(self, taskId):
         return self.request(
             "https://api.uyiban.com/officeTask/client/index/detail?TaskId=%s&CSRF=%s" % (taskId, self.CSRF),
-            cookies=self.COOKIES)
-
-    def submit(self, data, extend, wfid):
-        params = {
-            "data": data,
-            "extend": extend
-        }
-        return self.request(
-            "https://api.uyiban.com/workFlow/c/my/apply/%s?CSRF=%s" % (wfid, self.CSRF), method="post",
-            params=params,
-            cookies=self.COOKIES)
+            cookies=self.cookies)
 
     def getShareUrl(self, initiateId):
         return self.request(
             "https://api.uyiban.com/workFlow/c/work/share?InitiateId=%s&CSRF=%s" % (initiateId, self.CSRF),
-            cookies=self.COOKIES)
+            cookies=self.cookies)
+
+    # 获取表单信息
+    def getform(self,wfid):
+        return self.request(
+            "https://api.uyiban.com/workFlow/c/my/form/%s?CSRF=%s" % (wfid, self.CSRF),
+            cookies=self.cookies)
+
+    def submit(self, data, extend, wfid):
+        params = {
+            "data": data,
+            "extend": extend,
+            "WFId": wfid
+        }
+        return self.request(
+            "https://api.uyiban.com/workFlow/c/my/apply/?CSRF=%s"%(self.CSRF), method="post",
+            params=params,
+            cookies=self.cookies)
+
+    def clockIn(self,wfid,formDataJson,extendDataJson):
+        url = "https://api.uyiban.com/workFlow/c/my/apply/"
+        headers = {
+            'origin': 'https://app.uyiban.com',
+            'referer': 'https://app.uyiban.com/',
+            'Host': 'api.uyiban.com',
+            'user-agent': 'yiban'
+        }
+        params = {
+            "CSRF":self.CSRF
+        }
+        postData= {
+            'WFId':wfid,
+            'Data':json.dumps(formDataJson,ensure_ascii=False),
+            'Extend':json.dumps(extendDataJson,ensure_ascii=False)
+        }
+        print("提交的data",json.dumps(postData,ensure_ascii=False),"\n")
+        data = {
+            'Str': self.aes_encrypt(json.dumps(postData, ensure_ascii=False))
+        }
+        
+        response = self.session.post(url=url,headers=headers,params=params,data=data,cookies=self.cookies).json()
+        return response
+            
