@@ -10,8 +10,8 @@ import util
 
 if __name__ == '__main__':
     try:
-        account = "18574783639"
-        password = "wsyybo123456"
+        account = "youraccount"
+        password = "yourpassword"
         #if(len(account)==0 or len(password)==0):
         #    print("账号")
         #    account = input()
