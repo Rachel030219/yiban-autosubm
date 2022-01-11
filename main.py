@@ -56,18 +56,14 @@ if __name__ == '__main__':
             task_detail = yb.getTaskDetail(new_task["TaskId"])["data"]
             print("今日任务:"+str(task_detail),"\n")
 
-            #该两行为测试代码 一般情况下可注释 查看提交的具体表单
+            #以下两行行为测试代码 一般情况下可注释 查看提交的具体表单内容
             #formRes = yb.getform(task_detail["WFId"])
             #print("formRes"+str(formRes))
 
-            # FIXME: 以下是长沙理工大学最新的表单信息，由于某些值（检测时间）必须是动态的，所以只能将form表单写死在这里 （可能会变）
-            # TODO: 未来可能会改成动态获取(期待有个人帮我写)
-
-            
-            #submit_result = yb.submit(json.dumps(formData, ensure_ascii=False), json.dumps(
-            #    extendData, ensure_ascii=False), task_detail["WFId"])
             submit_result = yb.clockIn(task_detail["WFId"],formDataJson,extendData)
+            print(str(submit_result))
             if submit_result["code"] == 0:
+                print("yes1")
                 share_url = yb.getShareUrl(submit_result["data"])["data"]["uri"]
                 print("已完成一次体温上报[%s]" % task_detail["Title"])
                 print("访问此网址查看详情:%s" % share_url)

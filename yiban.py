@@ -178,17 +178,6 @@ class YiBan:
             "https://api.uyiban.com/workFlow/c/my/form/%s?CSRF=%s" % (wfid, self.CSRF),
             cookies=self.cookies)
 
-    def submit(self, data, extend, wfid):
-        params = {
-            "data": data,
-            "extend": extend,
-            "WFId": wfid
-        }
-        return self.request(
-            "https://api.uyiban.com/workFlow/c/my/apply/?CSRF=%s"%(self.CSRF), method="post",
-            params=params,
-            cookies=self.cookies)
-
     def clockIn(self,wfid,formDataJson,extendDataJson):
         url = "https://api.uyiban.com/workFlow/c/my/apply/"
         headers = {
@@ -209,7 +198,5 @@ class YiBan:
         data = {
             'Str': self.aes_encrypt(json.dumps(postData, ensure_ascii=False))
         }
-        
-        response = self.session.post(url=url,headers=headers,params=params,data=data,cookies=self.cookies).json()
-        return response
-            
+        req =  self.session.post(url=url,headers=headers,params=params,data=data,cookies=self.cookies)
+        return req.json()
