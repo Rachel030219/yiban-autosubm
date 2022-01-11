@@ -61,12 +61,11 @@ if __name__ == '__main__':
             #print("formRes"+str(formRes))
 
             submit_result = yb.clockIn(task_detail["WFId"],formDataJson,extendData)
-            print(str(submit_result))
+            #print(str(submit_result))
             if submit_result["code"] == 0:
-                print("yes1")
-                share_url = yb.getShareUrl(submit_result["data"])["data"]["uri"]
+                #share_url = yb.getShareUrl(submit_result["data"])["data"]["uri"]
                 print("已完成一次体温上报[%s]" % task_detail["Title"])
-                print("访问此网址查看详情:%s" % share_url)
+                #print("访问此网址查看详情:%s" % share_url)
             else:
                 print("[%s]遇到了一些错误:%s" % (task_detail["Title"], submit_result["msg"]))
     except Exception as e:
