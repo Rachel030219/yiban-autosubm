@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from logging import fatal
 import re
 import requests
@@ -76,8 +77,8 @@ class YiBan:
                     "logintoken": self.access_token,
                     "authorization": f"Bearer {self.access_token}"
             })
-            print("logintoken:"+self.access_token)
-            print("authorization:"+f"Bearer {self.access_token}")
+            #print("logintoken:"+self.access_token)
+            #print("authorization:"+f"Bearer {self.access_token}")
             return r
         else:
             raise Exception("账号或密码错误")
@@ -91,7 +92,7 @@ class YiBan:
         for i in r["data"]["hotApps"]: # 动态取得iapp号 20201117更新
             if i["name"] == "校本化":
                 self.iapp = re.findall(r"iapp[0-9]*", i["url"])[0]
-                print(self.iapp)
+                #print(self.iapp)
         return r
 
     def auth(self):
@@ -101,7 +102,6 @@ class YiBan:
         params = {
             "act": self.iapp
         }
-        print()
         r=self.session.request(url="https://f.yiban.cn/iapp/index", method='get', params=params, allow_redirects=False)
         location = r.headers.get("Location")    
 
@@ -149,7 +149,7 @@ class YiBan:
     def getCompletedList(self):
         params = {
             "CSRF": self.CSRF,
-            "StartTime": util.get_days_ago(-5),
+            "StartTime": util.get_yesterfay(),
             "EndTime": util.get_time()
         }
         return self.request("https://api.uyiban.com/officeTask/client/index/completedList", params=params,

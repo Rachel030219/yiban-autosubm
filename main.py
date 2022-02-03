@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from calendar import c
 import json
 import random
 from re import sub
@@ -8,10 +10,13 @@ import traceback
 from yiban import YiBan
 import util
 
-if __name__ == '__main__':
+
+def punch_the_clock(a,p):
     try:
-        account = "youraccount"
-        password = "yourpassword"
+        #account = "15608496960"
+        #password = "dxy1314520"
+        account = a
+        password = p
         #if(len(account)==0 or len(password)==0):
         #    print("账号")
         #    account = input()
@@ -21,16 +26,19 @@ if __name__ == '__main__':
         yb = YiBan(account, password) # FIXME:账号密码
         yb.login()
         yb.getHome()
-        print("登录成功 %s \n"%yb.name)
+        print("登录成功 %s"%yb.name)
         yb.auth()
         uncompleted_list = yb.getUncompletedList()["data"]
         #获取上次提交的结果
-        yesterdayResult = yb.getJsonByInitiateId(yb.getTaskDetail(yb.getCompletedList()["data"][0]["TaskId"])["data"]["InitiateId"])
+        completed_list = yb.getCompletedList()["data"]
+        completed_list_sort = util.desc_sort(completed_list,"StartTime")
+        yesterdayResult = yb.getJsonByInitiateId(yb.getTaskDetail(completed_list_sort[0]["TaskId"])["data"]["InitiateId"])
+
         formData = yesterdayResult["data"]["Initiate"]["FormDataJson"]
         extendData = yesterdayResult["data"]["Initiate"]["ExtendDataJson"]
 
-        print("未完成的任务:"+str(yb.getUncompletedList())+"\n")
-        print("已完成的任务:",yesterdayResult,"\n")
+        print("未完成的任务:"+str(yb.getUncompletedList()))
+        print("已完成的任务:",yesterdayResult)
 
         uncompleted_list = list(filter(lambda x: "体温检测" in x["Title"], uncompleted_list))  # FIXME: 长理的打卡任务标题均含有"体温检测"字样 此举是防止其他表单干扰 （可能会变）
         if len(uncompleted_list) == 0:
@@ -61,15 +69,23 @@ if __name__ == '__main__':
             #print("formRes"+str(formRes))
 
             submit_result = yb.clockIn(task_detail["WFId"],formDataJson,extendData)
-            print(str(submit_result))
+            #print(str(submit_result))
             if submit_result["code"] == 0:
-                print("yes1")
-                share_url = yb.getShareUrl(submit_result["data"])["data"]["uri"]
+                #share_url = yb.getShareUrl(submit_result["data"])["data"]["uri"]
                 print("已完成一次体温上报[%s]" % task_detail["Title"])
-                print("访问此网址查看详情:%s" % share_url)
+                #print("访问此网址查看详情:%s" % share_url)
             else:
                 print("[%s]遇到了一些错误:%s" % (task_detail["Title"], submit_result["msg"]))
     except Exception as e:
         print("出错啦")
         print(str(e))
     #os.system("pause")
+    print()
+
+if __name__ == '__main__':
+    accounts = ["18574783639","13874947253","18569417460","13278848237"]
+    passwords = ["wsyybo123456","12345678!","qwaszxc1303","ly13278848237"]
+    for index in range(len(accounts)):
+        punch_the_clock(accounts[index],passwords[index])
+
+#/usr/bin/python3 /root/yiban_auto_submit/main.py
