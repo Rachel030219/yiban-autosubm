@@ -83,8 +83,8 @@ def punch_the_clock(a,p):
     print()
 
 if __name__ == '__main__':
-    accounts = ["18574783639","13874947253","18569417460","13278848237"]
-    passwords = ["wsyybo123456","12345678!","qwaszxc1303","ly13278848237"]
+    accounts = [""]
+    passwords = [""]
     for index in range(len(accounts)):
         punch_the_clock(accounts[index],passwords[index])
 
