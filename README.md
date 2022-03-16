@@ -16,20 +16,3 @@
 Linux/Windows环境下，克隆本仓库后转到目录下执行
 
 
-```shell
-# 创建虚拟环境
-python3 -m venv venv
-
-# Linux进入虚拟环境
-source ./venv/bin/activate
-
-# 使用豆瓣源安装必要依赖
-pip3 install -r requirements.txt -i https://pypi.douban.com/simple
-
-# 启动打卡
-python3 main.py
-
-注意 多个依赖不能pip -r
-```
-
-
