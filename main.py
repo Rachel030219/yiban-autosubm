@@ -13,8 +13,6 @@ import util
 
 def punch_the_clock(a,p):
     try:
-        #account = "15608496960"
-        #password = "dxy1314520"
         account = a
         password = p
         #if(len(account)==0 or len(password)==0):
