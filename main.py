@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-from calendar import c
-import json
-import random
-from re import sub
+import re
 import time
-import os
 
-import traceback
 from yiban import YiBan
 import util
 
@@ -55,9 +50,17 @@ def punch_the_clock(a,p):
 
             # 更新formData
             print("更新前的formdata",formData,"\n")
-            formData[0]['value'] = time.strftime('%Y-%m-%d %H:%M',time.localtime())
-            formDataJson = {each['id']: each['value'] for each in formData}
-            print("更新后的formdata",formDataJson,"\n")
+            form_data_json = {}
+            for item in formData:
+                if 'value' in item:
+                    if isinstance(item['value'], str)  and re.search('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]',item['value']):
+                        form_data_json[item['id']] = time.strftime('%Y-%m-%d %H:%M',time.localtime())
+                        print(form_data_json,'\n')
+                    else:
+                        form_data_json[item['id']] = item['value']
+            # formData[0]['value'] = time.strftime('%Y-%m-%d %H:%M',time.localtime())
+            # formDataJson = {each['id']: each['value'] for each in formData}
+            print("更新后的formdata",form_data_json,"\n")
 
             task_detail = yb.getTaskDetail(new_task["TaskId"])["data"]
             print("今日任务:"+str(task_detail),"\n")
@@ -66,7 +69,7 @@ def punch_the_clock(a,p):
             #formRes = yb.getform(task_detail["WFId"])
             #print("formRes"+str(formRes))
 
-            submit_result = yb.clockIn(task_detail["WFId"],formDataJson,extendData)
+            submit_result = yb.clockIn(task_detail["WFId"],form_data_json,extendData)
             #print(str(submit_result))
             if submit_result["code"] == 0:
                 #share_url = yb.getShareUrl(submit_result["data"])["data"]["uri"]
